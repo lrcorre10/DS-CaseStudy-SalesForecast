@@ -47,9 +47,9 @@ def optuna_process(X_train, X_test, y_train, y_test):
     def objective(trial):
         
         params = {
-                'n_estimators': trial.suggest_int('n_estimators', 50, 500),
-                'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.3, 0.5),
-                'num_leaves': trial.suggest_int('num_leaves', 20, 100, 300, 500 )
+                'n_estimators': trial.suggest_int('n_estimators', 50, 500, 1000),
+                'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.3),
+                'num_leaves': trial.suggest_int('num_leaves', 20, 100, 300)
             }
         
         model = lgb.LGBMRegressor(**params, n_jobs=-1, random_state=42)
