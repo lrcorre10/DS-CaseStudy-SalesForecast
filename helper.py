@@ -48,8 +48,8 @@ def optuna_process(X_train, X_test, y_train, y_test):
         
         params = {
                 'n_estimators': trial.suggest_int('n_estimators', 50, 500),
-                'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.3),
-                'num_leaves': trial.suggest_int('num_leaves', 20, 300)
+                'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.3, 0.5),
+                'num_leaves': trial.suggest_int('num_leaves', 20, 100, 300, 500 )
             }
         
         model = lgb.LGBMRegressor(**params, n_jobs=-1, random_state=42)
@@ -72,7 +72,7 @@ def optuna_process(X_train, X_test, y_train, y_test):
         return rmse
 
     study = optuna.create_study(direction='minimize')
-    study.optimize(objective, n_trials=1)
+    study.optimize(objective, n_trials=50)
 
     print('Best trial:')
     trial = study.best_trial
@@ -85,13 +85,11 @@ def optuna_process(X_train, X_test, y_train, y_test):
 
     best_model.fit(X_train, y_train)
 
-    # Serialize the best model
     with open('best_model.pkl', 'wb') as f:
         pickle.dump(best_model, f)
 
     return best_model
 
-# Create 28-day forecast function
 def create_forecast(df, model_name, features):
     model = pickle.load(open(model_name, 'rb'))
 
