@@ -45,33 +45,33 @@ def convert_to_category(df: pd.DataFrame, columns: list) -> pd.DataFrame:
 # Optuna optimization
 def optuna_process(X_train, X_test, y_train, y_test):
     def objective(trial):
-        
         params = {
-                'n_estimators': trial.suggest_int('n_estimators', 50, 500, 1000),
-                'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.3),
-                'num_leaves': trial.suggest_int('num_leaves', 20, 100, 300)
-            }
-        
-        model = lgb.LGBMRegressor(**params, n_jobs=-1, random_state=42)
-        
-        model.set_params(**{
-            'objective': 'regression',
-            'metric': 'rmse',
-            'boosting_type': 'gbdt',
-            'verbosity': -1,
-            'feature_pre_filter': False,
-            'force_col_wise': True,
-            'force_row_wise': False,
-            'nan_mode': 'min',
-            'categorical_feature': 'auto'
-        })
-        
+            'n_estimators': trial.suggest_int('n_estimators', 300, 500),
+            'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.3),
+            'num_leaves': trial.suggest_int('num_leaves', 100, 300)
+        }
+
+        model = lgb.LGBMRegressor(
+            **params,
+            objective='regression',
+            metric='rmse',
+            boosting_type='gbdt',
+            verbosity=-1,
+            feature_pre_filter=False,
+            force_col_wise=True,
+            force_row_wise=False,
+            nan_mode='min',
+            categorical_feature='auto',
+            n_jobs=-1,
+            random_state=42
+        )
+
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
         rmse = np.sqrt(mean_squared_error(y_test, y_pred))
         return rmse
 
-    study = optuna.create_study(direction='minimize')
+    study = optuna.create_study(direction='minimize', sampler=optuna.samplers.TPESampler(seed=42))
     study.optimize(objective, n_trials=50)
 
     print('Best trial:')
@@ -81,8 +81,12 @@ def optuna_process(X_train, X_test, y_train, y_test):
     for key, value in trial.params.items():
         print(f'    {key}: {value}')
 
-    best_model = lgb.LGBMRegressor(**trial.params)
+    best_params = {**trial.params, 'objective': 'regression', 'metric': 'rmse', 'boosting_type': 'gbdt',
+                   'verbosity': -1, 'feature_pre_filter': False, 'force_col_wise': True,
+                   'force_row_wise': False, 'nan_mode': 'min', 'categorical_feature': 'auto',
+                   'n_jobs': -1, 'random_state': 42}
 
+    best_model = lgb.LGBMRegressor(**best_params)
     best_model.fit(X_train, y_train)
 
     with open('best_model.pkl', 'wb') as f:
