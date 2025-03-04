@@ -6,6 +6,8 @@ from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 import lightgbm as lgb
 import optuna
 import pickle
+import gc
+import dask.dataframe as dd
 
 def label_encode_categorical(df, categorical_cols) -> pd.DataFrame:
     le = LabelEncoder()
@@ -89,17 +91,28 @@ def optuna_process(X_train, X_test, y_train, y_test):
 
     return best_model
 
-features = [f'sales_lag_{lag}' for lag in range(1, 29)] + ['sell_price', 'day', 'month', 'year', 'dayofweek', 'is_weekend'] 
-target = 'y'
-
 # Create 28-day forecast function
-def create_forecast(df, model):
-    forecast_dates = [f'd_{i}' for i in range(1942, 1969)]  # Forecast for d_1942 to d_1969
-    future_data = df[df['d'].isin(forecast_dates)]
+def create_forecast(df, model_name, features):
+    model = pickle.load(open(model_name, 'rb'))
 
-    X_future = future_data[features]
-    y_pred_future = model.predict(X_future)
+    y_pred_future = model.predict(df)
 
-    # Return the forecasted sales
-    future_data['forecast_sales'] = y_pred_future
-    return future_data[['id', 'd', 'forecast_sales']]
+    df['forecast_sales'] = y_pred_future
+
+    future_data = df.drop(columns=['wm_yr_wk', 'event_name_1',  'event_type_1',  'event_name_2',  'event_type_2',  'snap_CA',
+                                             'snap_TX',  'snap_WI',  'sell_price','day',  'month',  'year',  'dayofweek',  'is_weekend'])  # Drop the feature columns
+    
+    gc.collect()
+
+    future_data['forecast_sales'] = round(future_data['forecast_sales'].astype(int))
+    future_data = future_data.reset_index()
+    original_data = future_data[['item_id', 'dept_id', 'cat_id', 'store_id', 'state_id']].copy()
+
+
+    df_pivot = future_data.pivot(index=['item_id', 'dept_id', 'cat_id', 'store_id', 'state_id'], 
+                    columns='d', 
+                    values='forecast_sales').reset_index()
+    
+    df_pivot = original_data.merge(df_pivot, on=['item_id', 'dept_id', 'cat_id', 'store_id', 'state_id'], how='left')
+    
+    return df_pivot
