@@ -120,3 +120,16 @@ def create_forecast(df, model_name, features):
     df_pivot.drop_duplicates(inplace=True)
     
     return df_pivot
+
+def calculate_rmse(df_true: pd.DataFrame, df_pred: pd.DataFrame, columns: list) -> float:
+    
+    if not all(col in df_true.columns for col in columns):
+        raise ValueError("Some columns are missing in the true DataFrame.")
+    if not all(col in df_pred.columns for col in columns):
+        raise ValueError("Some columns are missing in the predicted DataFrame.")
+    
+    true_values = df_true[columns].values.flatten()
+    pred_values = df_pred[columns].values.flatten()
+    
+    rmse = np.sqrt(mean_squared_error(true_values, pred_values))
+    return rmse
