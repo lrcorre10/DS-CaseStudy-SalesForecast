@@ -116,5 +116,7 @@ def create_forecast(df, model_name, features):
                     values='forecast_sales').reset_index()
     
     df_pivot = original_data.merge(df_pivot, on=['item_id', 'dept_id', 'cat_id', 'store_id', 'state_id'], how='left')
+
+    df_pivot.drop_duplicates(inplace=True)
     
     return df_pivot
