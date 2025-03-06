@@ -2,19 +2,17 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import mean_squared_error
-from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 import lightgbm as lgb
 import optuna
 import pickle
 import gc
-import dask.dataframe as dd
 
 
 def label_encode_categorical(df, categorical_cols) -> pd.DataFrame:
     le = LabelEncoder()
 
     for col in categorical_cols:
-        df[col] = le.fit_transform(df[col].astype(str))  # Ensure columns are treated as strings
+        df[col] = le.fit_transform(df[col].astype(str))
     return df
 
 
