@@ -17,10 +17,10 @@ def label_encode_categorical(df, categorical_cols) -> pd.DataFrame:
     return df
 
 def create_lags(df: pd.DataFrame, lag_days: int = 28) -> pd.DataFrame:
-    df = df.sort_values(by=["id", "date"])
+    df = df.sort_values(by=["id", "item_id", "dept_id", "cat_id", "store_id", "state_id", "date"])
 
     for lag in range(1, lag_days + 1):
-        df[f'lag_{lag}'] = df.groupby(['id'])['y'].shift(lag)
+        df[f'lag_{lag}'] = df.groupby(["id", "item_id", "dept_id", "cat_id", "store_id", "state_id"])["y"].shift(lag)
 
     return df
 
