@@ -42,3 +42,5 @@ In production this is difficult, since we don't have ground truth. The alternati
 ***What Could Be Improved***
 
 Since time was limited, I couldn’t dive deep into exploratory data analysis or refine the features as much as I would have liked. The code could also be cleaned up to follow best practices (PEP8) and be better structured using tools like MLflow or pipelines. Also, I would document the jupyter notebooks better.
+
+Also change the approach to have more than one model, for instance: the items that have more sales are not well suited in this model, then create a new one to those items would be a great improvement in the metrics.
