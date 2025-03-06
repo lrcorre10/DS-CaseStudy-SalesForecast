@@ -75,7 +75,7 @@ def optuna_process(X_train, X_test, y_train, y_test):
         return rmse
 
     study = optuna.create_study(direction="minimize", sampler=optuna.samplers.TPESampler(seed=42))
-    study.optimize(objective, n_trials=50)
+    study.optimize(objective, n_trials=10)
 
     print("Best trial:")
     trial = study.best_trial
